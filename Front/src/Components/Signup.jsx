@@ -1,33 +1,61 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useForm } from "react-hook-form"
+import React from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from 'react-hot-toast';
 
 function Signup() {
+    const location= useLocation()
+    const navigate=useNavigate()
+    const from= location.state?.from?.pathname || "/"
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm()
 
-    const onSubmit = (data) => console.log(data)
+    const onSubmit = async (data) => {
+    const userInfo = {
+        fullname:data.fullname,
+        email: data.email, 
+        password: data.password
+    }
+    await axios.post("http://localhost:4001/user/signup", userInfo)
+    .then((res)=>{
+        console.log(res.data)
+        if(res.data){
+            toast.success('Signup Successful');
+            navigate(from,{replace:true});
+            
+        }
+        localStorage.setItem("Users",JSON.stringify(res.data.user));
+    }).catch((err)=>{
+        if(err.response){
+            
+        console.log(err)
+        
+        toast.error("Error: "+ err.response.data.message);
+        }
+    })
+    }
     return (
         <>
-            <div className='flex h-screen items-center justify-center border'>
+            <div className='flex h-screen items-center justify-center border  dark:bg-slate-900 dark:text-white'>
                 <div className="w-[600px]">
                     <div className=" modal-box dark:bg-slate-900 dark:text-white">
                         <form onSubmit={handleSubmit(onSubmit)} method="dialog">
                             {/* if there is a button in form, it will close the modal */}
-                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><Link to="/">✕  </Link></button>
+                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><Link to="/"> ✕  </Link></button>
 
                             <h3 className="font-bold ">Signup</h3>
                             <div className='mt-4 space-y-2'>
                                 <span>Name</span>
                                 <br />
                                 <input type="text" placeholder='Enter Your Email' className='w-80 px-3 py-1 border rounded-md outline-none dark:bg-slate-900 dark:text-white'
-                                    {...register("name", { required: true })} />
+                                    {...register("fullname", { required: true })} />
                                 <br />
 
-                                {errors.name && <span className='text-sm text-red-600'>This field is required</span>}
+                                {errors.fullname && <span className='text-sm text-red-600'>This field is required</span>}
                             </div>
                             
                             <div className='mt-4 space-y-2'>
@@ -58,7 +86,7 @@ function Signup() {
                                         to="/Login"
                                         className="underline text-blue-500 cursor-pointer"
                                     >
-                                        Login
+                                        Login 
                                     </Link>{" "}
 
                                 </p>
